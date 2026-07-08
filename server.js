@@ -1,37 +1,18 @@
 const express = require('express');
-const { rodadaAtual } = require('campeonato-brasileiro-api'); 
+const { getCompetition } = require('campeonato-brasileiro-api'); 
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Rota inicial para evitar tela de erro se você acessar o link sem o /jogos
 app.get('/', (req, res) => {
-  res.send('Servidor Ativo! Acesse o link com /jogos no final para ver as partidas.');
+  res.send('Servidor V2 rápido ativo e blindado contra quedas!');
 });
 
 app.get('/jogos', async (req, res) => {
   try {
-    let todosOsJogos = [];
-    
-    // Dispara a busca pelas 38 rodadas do campeonato simultaneamente
-    const promessas = [];
-    for (let i = 1; i <= 38; i++) {
-      promessas.push(rodadaAtual('a', i));
-    }
-    
-    // Aguarda o resultado de todas as rodadas
-    const resultados = await Promise.all(promessas);
-    
-    // Junta os jogos de todas as rodadas em uma única lista gigante
-    resultados.forEach(rodada => {
-      if (Array.isArray(rodada)) {
-        todosOsJogos = todosOsJogos.concat(rodada);
-      } else if (rodada && rodada.jogos) {
-        todosOsJogos = todosOsJogos.concat(rodada.jogos);
-      }
-    });
-    
-    res.json(todosOsJogos);
+    // Faz apenas UMA chamada ultra rápida que já traz o campeonato inteiro
+    const dados = await getCompetition('a');
+    res.json(dados);
   } catch (error) {
     res.status(500).json({ error: "Erro interno da API do ezefranca: " + error.message });
   }
