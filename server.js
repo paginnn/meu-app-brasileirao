@@ -1,6 +1,5 @@
 const express = require('express');
-// Ajustado para o escopo correto do pacote v2
-const { getCompetition } = require('@ezefranca/campeonato-brasileiro-api'); 
+const { getCompetition } = require('campeonato-brasileiro-api'); 
 
 const app = express();
 const port = process.env.PORT || 3000;
