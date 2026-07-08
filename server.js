@@ -4,6 +4,37 @@ const port = process.env.PORT || 3000;
 
 app.get('/jogos', async (req, res) => {
   try {
+    // Acessa a tabela oficial pública
+    const response = await fetch('https://api.globoesporte.globo.com/tabela/brasileirao-serie-a');
+    const data = await response.json();
+    
+    // O Globo Esporte entrega um array de jogos prontinho
+    // Vamos apenas formatar para a sua planilha
+    const formatados = data.jogos.map(j => ({
+      id: j.id,
+      rodada: j.rodada,
+      data: j.data,
+      mandante: j.mandante.nome,
+      visitante: j.visitante.nome,
+      gols_mandante: j.gols_mandante,
+      gols_visitante: j.gols_visitante,
+      // Se não tiver a estatística oficial no JSON, deixaremos 0 ou vazio
+      chutes_mandante: j.estatisticas ? j.estatisticas.finalizacoes_mandante : 0,
+      chutes_visitante: j.estatisticas ? j.estatisticas.finalizacoes_visitante : 0
+    }));
+    
+    res.json(formatados);
+  } catch (error) {
+    res.status(500).json([{ id: 0, erro: "Erro ao ler GE" }]);
+  }
+});
+
+app.listen(port);const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/jogos', async (req, res) => {
+  try {
     // 1. ID do Brasileirão Série A no Sofascore é 325. 
     // 2. Buscamos a página '0', que contém os eventos mais recentes.
     const resposta = await fetch('https://api.sofascore.com/api/v1/unique-tournament/325/season/63346/events/last/0', {
