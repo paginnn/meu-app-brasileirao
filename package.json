@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "axios": "^1.7.2"
+    "campeonato-brasileiro-api": "^2.0.0"
   }
 }
