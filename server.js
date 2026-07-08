@@ -2,53 +2,39 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// A sua chave secreta do Football-Data!
-const TOKEN = "fd_debf0de838d48f44e4c4939a31f9cce92c58059c69032131";
-
 app.get('/jogos', async (req, res) => {
   try {
-    // Busca os jogos finalizados do Brasileirão (código oficial lá é BSA)
-    const resposta = await fetch('https://api.football-data.org/v4/competitions/BSA/matches?status=FINISHED', {
-      headers: { 'X-Auth-Token': TOKEN }
-    });
-    
-    if (!resposta.ok) {
-      throw new Error(`Erro na Football-Data: ${resposta.status}`);
-    }
-
-    const dados = await resposta.json();
     let historicoCompleto = [];
     
-    if (dados.matches) {
-      // Pega as últimas 10 rodadas (100 jogos) para não sobrecarregar
-      const ultimosJogos = dados.matches.slice(-100);
-
-      ultimosJogos.forEach(jogo => {
-        // Valores padrão caso o plano gratuito não libere as estatísticas
-        let chutesCasa = 0;
-        let chutesFora = 0;
-        let posseCasa = "50%";
-        let posseFora = "50%";
-
-        // Se a API liberar, o código caça as estatísticas aqui
-        if (jogo.statistics && jogo.statistics.length > 0) {
-            // (Lógica genérica para varrer o array de stats deles, se existir)
-        }
-
-        historicoCompleto.push({
-          id: jogo.id,
-          rodada: jogo.matchday,
-          data: jogo.utcDate,
-          mandante: jogo.homeTeam.name,
-          visitante: jogo.awayTeam.name,
-          gols_mandante: jogo.score.fullTime.home,
-          gols_visitante: jogo.score.fullTime.away,
-          chutes_mandante: chutesCasa,
-          chutes_visitante: chutesFora,
-          posse_mandante: posseCasa,
-          posse_visitante: posseFora
+    // Conecta direto na fonte oficial e inquebrável do Cartola
+    const statusReq = await fetch('https://api.cartola.globo.com/mercado/status');
+    const status = await statusReq.json();
+    const rodadaAtualNum = status.rodada_atual;
+    
+    const rodadaInicial = Math.max(1, rodadaAtualNum - 10);
+    
+    for (let i = rodadaInicial; i <= rodadaAtualNum; i++) {
+      try {
+        const rodadaReq = await fetch(`https://api.cartola.globo.com/partidas/${i}`);
+        const dados = await rodadaReq.json();
+        
+        const partidas = dados.partidas;
+        const clubes = dados.clubes;
+        
+        partidas.forEach(jogo => {
+          historicoCompleto.push({
+            id: jogo.partida_id,
+            rodada: i,
+            data: jogo.partida_data,
+            mandante: clubes[jogo.clube_casa_id].nome,
+            visitante: clubes[jogo.clube_visitante_id].nome,
+            gols_mandante: jogo.placar_oficial_mandante,
+            gols_visitante: jogo.placar_oficial_visitante
+          });
         });
-      });
+      } catch (err) {
+        console.log(`Erro ao buscar rodada ${i}`);
+      }
     }
     
     res.json(historicoCompleto);
@@ -57,4 +43,4 @@ app.get('/jogos', async (req, res) => {
   }
 });
 
-app.listen(port, () => console.log('Servidor V6 - Operando com a sua Chave Mestra!'));
+app.listen(port, () => console.log('Servidor restaurado e estável!'));
