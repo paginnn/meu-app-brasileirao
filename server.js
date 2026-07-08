@@ -6,28 +6,32 @@ const port = process.env.PORT || 3000;
 
 app.get('/jogos', async (req, res) => {
   try {
-    // Busca a competição completa
-    const dados = await getCompetition('a');
+    // Busca os dados da Série A
+    const data = await getCompetition('a');
     
-    let todosOsJogos = [];
+    let historicoCompleto = [];
     
-    // Varre todas as rodadas (rounds) para extrair todos os jogos de uma vez
-    if (dados.rounds) {
-      dados.rounds.forEach(rodada => {
-        if (rodada.matches) {
-          rodada.matches.forEach(jogo => {
-            // Adicionamos o número da rodada em cada jogo
-            jogo.rodada_numero = rodada.round;
-            todosOsJogos.push(jogo);
+    // O pulo do gato: vamos navegar por todas as fases e rodadas
+    if (data.fases) {
+      data.fases.forEach(fase => {
+        if (fase.rodadas) {
+          fase.rodadas.forEach(rodada => {
+            if (rodada.jogos) {
+              rodada.jogos.forEach(jogo => {
+                // Adicionamos o número da rodada ao objeto do jogo
+                jogo.rodada_numero = rodada.nome;
+                historicoCompleto.push(jogo);
+              });
+            }
           });
         }
       });
     }
     
-    res.json(todosOsJogos);
+    res.json(historicoCompleto);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Erro ao buscar histórico: " + error.message });
   }
 });
 
-app.listen(port, () => console.log('Servidor pronto para enviar todo o histórico!'));
+app.listen(port, () => console.log('Servidor rodando e pronto para o histórico!'));
