@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "campeonato-brasileiro-api": "latest"
+    "@ezefranca/campeonato-brasileiro-api": "latest"
   }
 }
